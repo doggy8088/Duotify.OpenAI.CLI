@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>openai-cli</ToolCommandName>
     <PackageId>Duotify.OpenAI.CLI</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>Will Huang</Authors>
     <Description>此應用程式是一個 CLI 工具，用於與 OpenAI 相容的 API 互動。</Description>
     <PackageOutputPath>./nupkgs</PackageOutputPath>

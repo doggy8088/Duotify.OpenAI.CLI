@@ -16,7 +16,17 @@
     dotnet tool install --global Duotify.OpenAI.CLI
     ```
 
-3. 安裝好之後，你可以透過 `openai-cli -h` 查詢用法。
+3. 更新版本的方法
+
+    ```sh
+    dotnet tool update --global Duotify.OpenAI.CLI
+    ```
+
+4. 解除安裝的方法
+
+    ```sh
+    dotnet tool uninstall --global Duotify.OpenAI.CLI
+    ```
 
 ## 必要條件
 
@@ -43,6 +53,9 @@
 ## 基本用法
 
 ```bash
+# 用法說明
+openai-cli -h
+
 # 一般用法
 openai-cli [-n] [-a api_name] [-o dump_file] [INPUT...]
 openai-cli -i dumped_file
