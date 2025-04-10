@@ -72,9 +72,19 @@ openai-cli -a embeddings [-f file | prompt ...]
   openai-cli @my_project 你是一位樂於助人的程式設計助理。
   ```
 
+  如果在 PowerShell 必須這樣寫：
+
+  ```bash
+  openai-cli '@my_project' 你是一位樂於助人的程式設計助理。
+  ```
+
 * 使用 `-c` 選項可在現有主題中繼續對話。
 
-### 範例
+  ```bash
+  openai-cli '@my_project' -c 你是一位樂於助人的程式設計助理。
+  ```
+
+### 使用範例
 
 ```bash
 # 取得簡單的聊天完成
@@ -82,7 +92,7 @@ openai-cli 撰寫關於 C# 的笑話
 
 # 建立新主題並開始聊天
 openai-cli @my_story 你是一位故事寫手。 "從前從前..."
-openai-cli -c @my_story "...有一位程式設計師。"
+openai-cli @my_story -c "...有一位程式設計師。"
 
 # 從檔案讀取提示
 echo "將此文字翻譯成日文" > prompt.txt
