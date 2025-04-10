@@ -102,3 +102,19 @@ dotnet run -- -i response.json
 # 關閉 stream 回應
 dotnet run -- +stream=false "Describe Taiwan. Answer me in zh-tw."
 ```
+
+## 開發時常用命令
+
+```sh
+# 封裝 NuGet 套件
+dotnet pack -c Release
+
+# 安裝 openai-cli 工具
+dotnet tool install --global --add-source ./nupkg openai-cli
+
+# 更新 openai-cli 工具
+dotnet tool update --global --add-source ./nupkg openai-cli
+
+# 卸載 openai-cli 工具
+dotnet tool uninstall --global openai-cli
+```

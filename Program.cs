@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 public static class Program
 {
     // --- Configuration & Defaults ---
-    private const string AppName = "openai-csharp";
+    private const string AppName = "openai-cli";
     private const string AppVersion = "1.0"; // Equivalent version for C# port
     private const string DefaultApiName = "chat/completions";
     private const string DefaultTopic = "General";
