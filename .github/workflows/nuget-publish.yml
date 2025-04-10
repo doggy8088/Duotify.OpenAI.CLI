@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-publish:
     runs-on: windows-latest
+
+    permissions:
+      contents: write
+
     steps:
       - name: 取得原始碼
         uses: actions/checkout@v4
