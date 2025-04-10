@@ -1,0 +1,45 @@
+# 設定預設的行為，若沒有配對到其他規則，則套用這個規則
+* text=auto
+
+# 程式碼檔案 - Windows 格式 (CRLF)
+*.cs text diff=csharp eol=crlf
+*.cpp text diff=cpp eol=crlf
+*.h text eol=crlf
+*.hpp text eol=crlf
+*.js text eol=crlf
+*.ts text eol=crlf
+*.html text diff=html eol=crlf
+*.css text diff=css eol=crlf
+*.json text eol=crlf
+*.xml text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 程式碼檔案 - Unix 格式 (LF)
+*.py text diff=python eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+*.docker text eol=lf
+Dockerfile text eol=lf
+.env text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# 文件檔案
+*.md text diff=markdown
+*.txt text
+*.config text
+
+# 影片檔案（二進位檔案）
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.pdf binary
+*.zip binary
