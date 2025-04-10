@@ -1,0 +1,31 @@
+name: 發佈 NuGet 套件
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+    steps:
+      - name: 取得原始碼
+        uses: actions/checkout@v4
+
+      - name: 設定 .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: 還原相依套件
+        run: dotnet restore
+
+      - name: 建構專案
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 建立 NuGet 套件
+        run: dotnet pack --configuration Release --no-build --output ./nupkgs
+
+      - name: 發佈 NuGet 套件
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
