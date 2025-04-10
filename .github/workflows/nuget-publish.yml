@@ -27,5 +27,11 @@ jobs:
       - name: 建立 NuGet 套件
         run: dotnet pack --configuration Release --no-build --output ./nupkgs
 
+      - name: 上傳成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkgs
+
       - name: 發佈 NuGet 套件
         run: dotnet nuget push .\nupkgs\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
