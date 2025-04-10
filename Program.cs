@@ -79,7 +79,7 @@ public static class Program
 
                 if (method is null)
                 {
-                    RaiseError($"API '{_apiName}' is not available.", 12);
+                    return RaiseError($"API '{_apiName}' is not available.", 12);
                 }
 
                 // Assuming all API methods are async Task
@@ -125,7 +125,7 @@ public static class Program
     }
 
     // --- Helper Functions ---
-    private static void RaiseError(string message, int exitCode = 1, bool noPrefix = false)
+    private static int RaiseError(string message, int exitCode = 1, bool noPrefix = false)
     {
         if (!noPrefix) Console.Error.Write($"{AppName}: ");
         Console.Error.WriteLine(message);
@@ -135,6 +135,7 @@ public static class Program
              try { Directory.Delete(_tempDir, true); } catch { /* Ignore cleanup errors on exit */ }
         }
         Environment.Exit(exitCode);
+        return exitCode;
     }
 
     private static JsonObject LoadConversation()
@@ -509,12 +510,12 @@ public static class Program
                 if (_chatMode)
                 {
                     // Load all messages for chat mode
-                    foreach(var msg in existingMessages) messages.Add(msg.DeepClone());
+                    foreach(var msg in existingMessages) messages.Add(msg!.DeepClone());
                 }
                 else if (existingMessages.Count > 0)
                 {
                     // Load only the first (system) message for non-chat mode
-                     messages.Add(existingMessages[0].DeepClone());
+                     messages.Add(existingMessages[0]!.DeepClone());
                 }
             }
 
