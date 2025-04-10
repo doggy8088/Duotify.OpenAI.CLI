@@ -33,5 +33,26 @@ jobs:
           name: nuget-packages
           path: ./nupkgs
 
+      - name: 取得版本號
+        id: get_version
+        run: |
+          $version = Select-Xml -Path ".\Duotify.OpenAI.CLI.csproj" -XPath "//Version" | ForEach-Object { $_.Node.InnerText }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: 建立 GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: 上傳 Release 附件
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          files: ./nupkgs/Duotify.OpenAI.CLI.${{ steps.get_version.outputs.version }}.nupkg
+
       - name: 發佈 NuGet 套件
         run: dotnet nuget push .\nupkgs\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
