@@ -163,12 +163,16 @@ dotnet run -- -a models
 # 封裝 NuGet 套件
 dotnet pack -c Release
 
-# 安裝 openai-cli 工具
-dotnet tool install --global --add-source ./nupkgs openai-cli
+# 安裝 Duotify.OpenAI.CLI 工具
+dotnet tool install --global --add-source ./nupkgs Duotify.OpenAI.CLI
 
-# 更新 openai-cli 工具
-dotnet tool update --global --add-source ./nupkgs openai-cli
+# 更新 Duotify.OpenAI.CLI 工具
+dotnet tool update --global --add-source ./nupkgs Duotify.OpenAI.CLI
 
-# 卸載 openai-cli 工具
-dotnet tool uninstall --global openai-cli
+# 卸載 Duotify.OpenAI.CLI 工具
+dotnet tool uninstall --global Duotify.OpenAI.CLI
+
+# 發行 NuGet 套件
+# https://www.nuget.org/account/apikeys
+dotnet nuget push ./nupkgs/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
 ```
