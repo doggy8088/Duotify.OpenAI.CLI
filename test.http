@@ -1,5 +1,5 @@
 ###
 
 GET https://api.openai.com/v1/models
-Authorization: Bearer {{openai_api_key}}
+Authorization: Bearer {{$dotenv openai_api_key}}
 Accept: application/json
