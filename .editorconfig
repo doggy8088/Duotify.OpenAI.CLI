@@ -17,9 +17,6 @@ indent_size = 2
 indent_size = 4
 tab_width = 4
 
-# New line preferences
-insert_final_newline = false
-
 #### .NET Coding Conventions ####
 [*.{cs,vb}]
 
@@ -378,3 +375,5 @@ dotnet_naming_style.s_camelcase.capitalization = camel_case
 
 [*.{cs,csx,vb,vbx,txt,html,htm,css,js,json,yml,yaml,xml,config,ini,sh,ps1,psm1,psd1,ps1xml,psrc1xml,csproj,sln,gitignore,gitattributes,editorconfig,md,markdown,txt,asciidoc,adoc,asc,asciidoc,txt,ipynb,py}]
 charset = utf-8-bom
+insert_final_newline = true
+trim_trailing_whitespace = true
