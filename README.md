@@ -98,4 +98,7 @@ dotnet run -- -o response.json "什麼是 REST API？"
 
 # 使用儲存的回應
 dotnet run -- -i response.json
+
+# 關閉 stream 回應
+dotnet run -- +stream=false "Describe Taiwan. Answer me in zh-tw."
 ```
