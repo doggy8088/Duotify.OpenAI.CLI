@@ -18,9 +18,7 @@
 
 3. 安裝好之後，你可以透過 `openai-cli -h` 查詢用法。
 
-## 用途
-
-### 必要條件
+## 必要條件
 
 在執行應用程式之前，請確定已設定下列環境變數：
 
@@ -42,7 +40,7 @@
 
 聊天主題 (`TOPIC`) 資料會儲存在 `$OPENAI_DATA_DIR` (如果已設定)、`$XDG_CONFIG_HOME` (如果已設定) 或 `$HOME/.openai` 中。
 
-### 基本語法
+## 基本用法
 
 ```bash
 # 一般用法
@@ -54,14 +52,12 @@ openai-cli [-c] [+property=value...] [@TOPIC] [-f file | prompt ...]
 
 # 其他 API 範例
 openai-cli -a models
+openai-cli -a embeddings [-f file | prompt ...]
 openai-cli -a moderations [-f file | prompt ...]
 openai-cli -a images/generations [-f file | prompt ...]
-openai-cli -a embeddings [-f file | prompt ...]
 ```
 
-**注意**： 使用 `dotnet run` 時，請在應用程式引數前加上 `--`，以將它們與 `dotnet` 指令本身的選項分開。
-
-### 選項
+## 選項
 
 * `-a <api_name>`：指定要呼叫的 API 端點 (預設：`chat/completions`)。範例：`models`、`moderations`、`images/generations`、`embeddings`。
 * `-c`：在現有主題中繼續對話。需要 `@TOPIC` (除非主題是 `General` 且檔案存在)。
@@ -74,7 +70,7 @@ openai-cli -a embeddings [-f file | prompt ...]
 * `@TOPIC`：指定要使用或建立的對話主題。預設主題為 `General`。
 * `prompt ...`：直接在命令列上提供的提示文字。
 
-### 主題
+## 主題聊天
 
 * 主題可讓您將對話記錄分開。它們會儲存為 `$OPENAI_DATA_DIR` 中的 `<topic_name>.json` 檔案。
 * 若要使用特定主題，請在提示之前包含 `@topic_name`。
@@ -96,7 +92,7 @@ openai-cli -a embeddings [-f file | prompt ...]
   openai-cli '@my_project' -c 你是一位樂於助人的程式設計助理。
   ```
 
-### 使用範例
+## 更多使用範例
 
 ```bash
 # 取得簡單的聊天完成
@@ -158,8 +154,8 @@ echo "將此文字翻譯成日文: Good morning!" | openai-cli
 ## 開發時常用命令
 
 ```sh
-# 測試執行
-openai-cli '撰寫關於 C# 的笑話'
+# 注意： 使用 dotnet run 時，請在應用程式引數前加上 --，以將它們與 dotnet 指令本身的選項分開。
+dotnet run 撰寫關於 C# 的笑話
 dotnet run -- -a models -n
 dotnet run -- -a models
 
