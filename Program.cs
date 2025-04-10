@@ -90,7 +90,7 @@ public static class Program
                 }
                 else
                 {
-                     RaiseError($"Could not invoke API method '{methodName}'.", 12);
+                    RaiseError($"Could not invoke API method '{methodName}'.", 12);
                 }
             }
             else
@@ -132,7 +132,7 @@ public static class Program
         // Cleanup temp dir before exiting
         if (!string.IsNullOrEmpty(_tempDir) && Directory.Exists(_tempDir))
         {
-             try { Directory.Delete(_tempDir, true); } catch { /* Ignore cleanup errors on exit */ }
+            try { Directory.Delete(_tempDir, true); } catch { /* Ignore cleanup errors on exit */ }
         }
         Environment.Exit(exitCode);
         return exitCode;
@@ -161,7 +161,7 @@ public static class Program
         }
     }
 
-     private static void UpdateConversation(string role, JsonNode contentNode)
+    private static void UpdateConversation(string role, JsonNode contentNode)
     {
         var data = LoadConversation();
         var messages = data["messages"] as JsonArray ?? new JsonArray();
@@ -175,16 +175,16 @@ public static class Program
         }
         else if (contentNode is JsonObject objContent) // For function calls or other complex content
         {
-             // If it's a function call structure from the response
-             if (objContent.ContainsKey("function_call"))
-             {
-                 entry["function_call"] = objContent["function_call"]?.DeepClone(); // Add the function call details
-                 entry["content"] = null; // Per OpenAI spec, content is null for function calls
-             }
-             else // Otherwise, assume it's a regular content object (though usually it's a string)
-             {
-                 entry["content"] = objContent.DeepClone();
-             }
+            // If it's a function call structure from the response
+            if (objContent.ContainsKey("function_call"))
+            {
+                entry["function_call"] = objContent["function_call"]?.DeepClone(); // Add the function call details
+                entry["content"] = null; // Per OpenAI spec, content is null for function calls
+            }
+            else // Otherwise, assume it's a regular content object (though usually it's a string)
+            {
+                entry["content"] = objContent.DeepClone();
+            }
         }
         else
         {
@@ -210,7 +210,7 @@ public static class Program
     // Overload for simple string content
     private static void UpdateConversation(string role, string content)
     {
-         UpdateConversation(role, JsonValue.Create(content)!);
+        UpdateConversation(role, JsonValue.Create(content)!);
     }
 
 
@@ -226,9 +226,9 @@ public static class Program
             {
                 File.WriteAllText(_dataFile, data.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             }
-             catch (Exception ex)
+            catch (Exception ex)
             {
-                 RaiseError($"Error writing token count to conversation file '{_dataFile}': {ex.Message}", 7);
+                RaiseError($"Error writing token count to conversation file '{_dataFile}': {ex.Message}", 7);
             }
         }
 
@@ -245,7 +245,7 @@ public static class Program
         }
         catch (Exception ex)
         {
-             Console.Error.WriteLine($"{AppName}: Warning: Failed to update global token file '{tokensFile}': {ex.Message}");
+            Console.Error.WriteLine($"{AppName}: Warning: Failed to update global token file '{tokensFile}': {ex.Message}");
         }
     }
 
@@ -272,10 +272,13 @@ public static class Program
                 }
                 else if (decimal.TryParse(value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var decVal))
                 {
-                     // Use decimal for precision, check if it's an integer
-                    if (decVal == Math.Truncate(decVal)) {
+                    // Use decimal for precision, check if it's an integer
+                    if (decVal == Math.Truncate(decVal))
+                    {
                         jsonValue = JsonValue.Create((long)decVal);
-                    } else {
+                    }
+                    else
+                    {
                         jsonValue = JsonValue.Create(decVal);
                     }
                 }
@@ -315,27 +318,27 @@ public static class Program
                 _prompt = File.ReadAllText(_promptFile);
                 if (string.IsNullOrWhiteSpace(_prompt) && new FileInfo(_promptFile).Length == 0) // Check if truly empty
                 {
-                     RaiseError($"Empty file: {_promptFile}.", 4);
+                    RaiseError($"Empty file: {_promptFile}.", 4);
                 }
-                 _prompt = _prompt.Trim(); // Trim whitespace like shell would implicitly do
+                _prompt = _prompt.Trim(); // Trim whitespace like shell would implicitly do
             }
             catch (Exception ex)
             {
-                 RaiseError($"Error reading prompt file '{_promptFile}': {ex.Message}", 3);
+                RaiseError($"Error reading prompt file '{_promptFile}': {ex.Message}", 3);
             }
         }
         else
         {
-             // Read from standard input if no prompt args and no -f file
+            // Read from standard input if no prompt args and no -f file
             using (var reader = new StreamReader(Console.OpenStandardInput()))
             {
                 _prompt = reader.ReadToEnd().Trim();
             }
         }
-         // Ensure prompt isn't empty after all checks
+        // Ensure prompt isn't empty after all checks
         if (string.IsNullOrEmpty(_prompt) && string.IsNullOrEmpty(_dumpedFile)) // Don't require prompt if using dumped file
         {
-             RaiseError("Prompt is required.", 13);
+            RaiseError("Prompt is required.", 13);
         }
     }
 
@@ -349,7 +352,7 @@ public static class Program
         Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
     }
 
-     public static async Task OpenAI_Moderations()
+    public static async Task OpenAI_Moderations()
     {
         ReadPrompt(); // Read prompt and +properties
 
@@ -371,16 +374,18 @@ public static class Program
         var results = response?["results"] as JsonArray;
         if (results != null)
         {
-            foreach(var result in results)
+            foreach (var result in results)
             {
-                 Console.WriteLine(result?.ToJsonString() ?? "{}");
+                Console.WriteLine(result?.ToJsonString() ?? "{}");
             }
-        } else {
-             Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
+        }
+        else
+        {
+            Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
         }
     }
 
-     public static async Task OpenAI_Images_Generations()
+    public static async Task OpenAI_Images_Generations()
     {
         ReadPrompt(); // Read prompt and +properties
 
@@ -395,8 +400,8 @@ public static class Program
         // Merge properties from command line
         foreach (var prop in _requestProperties)
         {
-             // Ensure response_format stays "url"
-            if(prop.Key.ToLower() != "response_format")
+            // Ensure response_format stays "url"
+            if (prop.Key.ToLower() != "response_format")
             {
                 payload[prop.Key] = prop.Value?.DeepClone();
             }
@@ -404,20 +409,22 @@ public static class Program
 
 
         var response = await CallApi(payload);
-         // Process and print results
+        // Process and print results
         var data = response?["data"] as JsonArray;
         if (data != null)
         {
-            foreach(var item in data)
+            foreach (var item in data)
             {
-                 Console.WriteLine(item?["url"]?.GetValue<string>() ?? "");
+                Console.WriteLine(item?["url"]?.GetValue<string>() ?? "");
             }
-        } else {
-             Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
+        }
+        else
+        {
+            Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
         }
     }
 
-     public static async Task OpenAI_Embeddings()
+    public static async Task OpenAI_Embeddings()
     {
         ReadPrompt(); // Read prompt and +properties
 
@@ -463,13 +470,13 @@ public static class Program
                     // No need to save conversation history when using dumped file
                     return;
                 }
-// If above fails, assume it might be a streamed dump (though script doesn't explicitly support dumping streams)
+                // If above fails, assume it might be a streamed dump (though script doesn't explicitly support dumping streams)
                 // Or handle streamed dump if needed (more complex)
                 Console.Error.WriteLine($"{AppName}: Warning: Could not extract content from dumped file '{_dumpedFile}'. Assuming stream or invalid format.");
-// Fall through to potentially re-request if logic allows, or just exit?
-                 // The bash script exits after cat-ing the file, so we mimic that.
-                 // If the file was a stream dump, the bash script wouldn't process it here either.
-                 // Let's just output the file content as is, like the bash script does.
+                // Fall through to potentially re-request if logic allows, or just exit?
+                // The bash script exits after cat-ing the file, so we mimic that.
+                // If the file was a stream dump, the bash script wouldn't process it here either.
+                // Let's just output the file content as is, like the bash script does.
                 Console.Write(dumpedContent);
                 return;
 
@@ -482,15 +489,15 @@ public static class Program
         }
         else // Normal API request
         {
-             ReadPrompt(); // Read prompt and +properties
+            ReadPrompt(); // Read prompt and +properties
 
             payload = new JsonObject
             {
                 ["model"] = _openAIApiModel,
-// stream defaults to true unless overridden by +stream=false
+                // stream defaults to true unless overridden by +stream=false
             };
 
-             // Merge properties from command line, setting stream default
+            // Merge properties from command line, setting stream default
             payload["stream"] = true; // Default
             foreach (var prop in _requestProperties)
             {
@@ -510,12 +517,12 @@ public static class Program
                 if (_chatMode)
                 {
                     // Load all messages for chat mode
-                    foreach(var msg in existingMessages) messages.Add(msg!.DeepClone());
+                    foreach (var msg in existingMessages) messages.Add(msg!.DeepClone());
                 }
                 else if (existingMessages.Count > 0)
                 {
                     // Load only the first (system) message for non-chat mode
-                     messages.Add(existingMessages[0]!.DeepClone());
+                    messages.Add(existingMessages[0]!.DeepClone());
                 }
             }
 
@@ -523,7 +530,7 @@ public static class Program
             messages.Add(new JsonObject { ["role"] = "user", ["content"] = _prompt });
             payload["messages"] = messages;
 
-             // Check o1 parameters (approximation) - C# doesn't have direct equivalent of test/select easily
+            // Check o1 parameters (approximation) - C# doesn't have direct equivalent of test/select easily
             // This check is complex in bash jq; skipping direct C# equivalent for brevity unless critical.
             // Consider adding if needed, potentially checking model name and presence of specific keys.
             // if (payload["model"]?.GetValue<string>().StartsWith("o1") ?? false) { ... check other params ... }
@@ -556,7 +563,7 @@ public static class Program
                         // Get role and function info from the first relevant chunk
                         if (string.IsNullOrEmpty(responseRole) || responseRole == "assistant") // Role might change
                         {
-                             responseRole = delta["role"]?.GetValue<string>() ?? responseRole;
+                            responseRole = delta["role"]?.GetValue<string>() ?? responseRole;
                         }
                         if (string.IsNullOrEmpty(functionName))
                         {
@@ -565,14 +572,17 @@ public static class Program
 
 
                         string? chunkContent = null;
-                        if (!string.IsNullOrEmpty(functionName)) {
-                             // Accumulate function arguments
-                             chunkContent = delta["function_call"]?["arguments"]?.GetValue<string>();
-                             if(chunkContent != null) accumulatedFnArgs.Append(chunkContent);
-                        } else {
+                        if (!string.IsNullOrEmpty(functionName))
+                        {
+                            // Accumulate function arguments
+                            chunkContent = delta["function_call"]?["arguments"]?.GetValue<string>();
+                            if (chunkContent != null) accumulatedFnArgs.Append(chunkContent);
+                        }
+                        else
+                        {
                             // Accumulate regular content
                             chunkContent = delta["content"]?.GetValue<string>();
-                             if(chunkContent != null) accumulatedContent.Append(chunkContent);
+                            if (chunkContent != null) accumulatedContent.Append(chunkContent);
                         }
 
 
@@ -585,7 +595,7 @@ public static class Program
                         if (finishReason == "stop" || finishReason == "function_call") break;
                         if (!string.IsNullOrEmpty(finishReason))
                         {
-                             RaiseError($"API error: {finishReason}", 10);
+                            RaiseError($"API error: {finishReason}", 10);
                         }
                     }
                     catch (JsonException ex)
@@ -594,29 +604,29 @@ public static class Program
                     }
                 }
             }
-             Console.WriteLine(); // Add newline after streaming finishes
+            Console.WriteLine(); // Add newline after streaming finishes
 
-             // Determine final response content for saving history
-             if (!string.IsNullOrEmpty(functionName))
-             {
-                 try
-                 {
-                     // Attempt to parse the accumulated arguments as JSON
-                     functionArgs = JsonNode.Parse(accumulatedFnArgs.ToString()) as JsonObject ?? new JsonObject();
-                     // Prepare a structure similar to the bash script for saving
-                     responseContent = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName, ["arguments"] = functionArgs } }.ToJsonString();
-                 }
-                 catch (JsonException)
-                 {
-                     // If args are not valid JSON, save them as a string (though API usually guarantees JSON)
-                     responseContent = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName, ["arguments"] = accumulatedFnArgs.ToString() } }.ToJsonString();
-                     Console.Error.WriteLine($"{AppName}: Warning: Function call arguments were not valid JSON.");
-                 }
-             }
-             else
-             {
-                 responseContent = accumulatedContent.ToString();
-             }
+            // Determine final response content for saving history
+            if (!string.IsNullOrEmpty(functionName))
+            {
+                try
+                {
+                    // Attempt to parse the accumulated arguments as JSON
+                    functionArgs = JsonNode.Parse(accumulatedFnArgs.ToString()) as JsonObject ?? new JsonObject();
+                    // Prepare a structure similar to the bash script for saving
+                    responseContent = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName, ["arguments"] = functionArgs } }.ToJsonString();
+                }
+                catch (JsonException)
+                {
+                    // If args are not valid JSON, save them as a string (though API usually guarantees JSON)
+                    responseContent = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName, ["arguments"] = accumulatedFnArgs.ToString() } }.ToJsonString();
+                    Console.Error.WriteLine($"{AppName}: Warning: Function call arguments were not valid JSON.");
+                }
+            }
+            else
+            {
+                responseContent = accumulatedContent.ToString();
+            }
 
         }
         else // Non-streaming
@@ -628,11 +638,13 @@ public static class Program
             var fnCall = responseJson?["choices"]?[0]?["message"]?["function_call"];
             if (fnCall != null)
             {
-                 responseContent = fnCall.ToJsonString(); // Save the function call object stringified
-// Output might need adjustment depending on desired non-streaming function call format
-                 Console.WriteLine(fnCall.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-            } else {
-                 Console.WriteLine(responseContent);
+                responseContent = fnCall.ToJsonString(); // Save the function call object stringified
+                                                         // Output might need adjustment depending on desired non-streaming function call format
+                Console.WriteLine(fnCall.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+            else
+            {
+                Console.WriteLine(responseContent);
             }
 
         }
@@ -640,43 +652,46 @@ public static class Program
         // Save conversation history for chat mode
         if (_chatMode && !_dryRun) // Don't save if dry run
         {
-             // Save user prompt first
+            // Save user prompt first
             UpdateConversation("user", _prompt);
 
             // Save assistant response (or function call)
-             JsonNode responseNode;
-             if (!string.IsNullOrEmpty(functionName) || (functionArgs != null)) // Check if it was a function call
-             {
-                 // Reconstruct the function call object for saving
-                 var fnSaveObject = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName } };
-                 if(functionArgs != null) {
-                     ((JsonObject)fnSaveObject["function_call"]!)["arguments"] = functionArgs.DeepClone();
-                 } else {
-                     // Handle case where args might not have been valid JSON during streaming
-                     ((JsonObject)fnSaveObject["function_call"]!)["arguments"] = accumulatedFnArgs.ToString();
-                 }
-                 responseNode = fnSaveObject;
-             }
-             else if (!string.IsNullOrEmpty(responseContent) && responseContent.TrimStart().StartsWith('{'))
-             {
-                 // Handle non-streaming function call saved as stringified JSON
-                 try { responseNode = JsonNode.Parse(responseContent)!; }
-                 catch { responseNode = JsonValue.Create(responseContent)!; } // Fallback to string if parse fails
-             }
-             else
-             {
-                 responseNode = JsonValue.Create(responseContent)!;
-             }
-             UpdateConversation(responseRole, responseNode); // Use the determined role
+            JsonNode responseNode;
+            if (!string.IsNullOrEmpty(functionName) || (functionArgs != null)) // Check if it was a function call
+            {
+                // Reconstruct the function call object for saving
+                var fnSaveObject = new JsonObject { ["function_call"] = new JsonObject { ["name"] = functionName } };
+                if (functionArgs != null)
+                {
+                    ((JsonObject)fnSaveObject["function_call"]!)["arguments"] = functionArgs.DeepClone();
+                }
+                else
+                {
+                    // Handle case where args might not have been valid JSON during streaming
+                    ((JsonObject)fnSaveObject["function_call"]!)["arguments"] = accumulatedFnArgs.ToString();
+                }
+                responseNode = fnSaveObject;
+            }
+            else if (!string.IsNullOrEmpty(responseContent) && responseContent.TrimStart().StartsWith('{'))
+            {
+                // Handle non-streaming function call saved as stringified JSON
+                try { responseNode = JsonNode.Parse(responseContent)!; }
+                catch { responseNode = JsonValue.Create(responseContent)!; } // Fallback to string if parse fails
+            }
+            else
+            {
+                responseNode = JsonValue.Create(responseContent)!;
+            }
+            UpdateConversation(responseRole, responseNode); // Use the determined role
         }
 
-         // Save token count (approximation, as C# doesn't get it directly from stream easily)
-         // The bash script also doesn't save tokens from stream response.
-         // We could potentially parse the non-streaming response for tokens if needed.
-         // if (!_dryRun && !streaming && responseJson != null && responseJson.TryGetProperty("usage", out var usage) && usage.TryGetProperty("total_tokens", out var tokens))
-         // {
-         //     SaveTokens(tokens.GetInt32());
-         // }
+        // Save token count (approximation, as C# doesn't get it directly from stream easily)
+        // The bash script also doesn't save tokens from stream response.
+        // We could potentially parse the non-streaming response for tokens if needed.
+        // if (!_dryRun && !streaming && responseJson != null && responseJson.TryGetProperty("usage", out var usage) && usage.TryGetProperty("total_tokens", out var tokens))
+        // {
+        //     SaveTokens(tokens.GetInt32());
+        // }
 
     }
 
@@ -698,8 +713,8 @@ public static class Program
             }
             catch (Exception ex)
             {
-                 RaiseError($"Error reading or parsing dumped file '{_dumpedFile}': {ex.Message}", 8);
-                 return null; // Unreachable
+                RaiseError($"Error reading or parsing dumped file '{_dumpedFile}': {ex.Message}", 8);
+                return null; // Unreachable
             }
         }
 
@@ -736,19 +751,21 @@ public static class Program
             if (!string.IsNullOrEmpty(_dumpFile))
             {
                 await File.WriteAllTextAsync(_dumpFile, responseBody);
-                 Console.Error.WriteLine($"Response dumped to '{_dumpFile}'.");
+                Console.Error.WriteLine($"Response dumped to '{_dumpFile}'.");
                 Environment.Exit(0);
             }
 
 
             if (!response.IsSuccessStatusCode)
             {
-                 // Try to parse error details from response
+                // Try to parse error details from response
                 string errorDetails = responseBody;
-                try {
+                try
+                {
                     var errorJson = JsonNode.Parse(responseBody);
                     errorDetails = errorJson?["error"]?["message"]?.GetValue<string>() ?? responseBody;
-                } catch {} // Ignore parsing errors, use raw body
+                }
+                catch { } // Ignore parsing errors, use raw body
 
                 RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}\nDetails: {errorDetails}", 9);
             }
@@ -761,25 +778,25 @@ public static class Program
             RaiseError($"HTTP request failed: {ex.Message}", 9);
             return null; // Unreachable
         }
-         catch (JsonException ex)
+        catch (JsonException ex)
         {
             RaiseError($"Failed to parse API response: {ex.Message}", 9);
             return null; // Unreachable
         }
         catch (Exception ex) // Catch other potential errors
         {
-             RaiseError($"An unexpected error occurred during API call: {ex.Message}", 9);
-             return null; // Unreachable
+            RaiseError($"An unexpected error occurred during API call: {ex.Message}", 9);
+            return null; // Unreachable
         }
     }
 
-     private static async Task<Stream?> CallApiStream(JsonObject payload)
+    private static async Task<Stream?> CallApiStream(JsonObject payload)
     {
-         // Dumped file doesn't make sense for streaming in this context
+        // Dumped file doesn't make sense for streaming in this context
         if (!string.IsNullOrEmpty(_dumpedFile))
         {
-             RaiseError("Cannot use dumped file with streaming API call.", 8);
-             return null;
+            RaiseError("Cannot use dumped file with streaming API call.", 8);
+            return null;
         }
 
         var url = $"{_openAIApiEndpoint}/{_apiName}";
@@ -790,7 +807,7 @@ public static class Program
         {
             Console.Error.WriteLine("Dry-run mode, no API calls made.");
             Console.Error.WriteLine($"\nRequest URL:\n--------------\n{url}");
-             Console.Error.Write($"\nAuthorization:\n--------------\nBearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****\n"); // Mask key
+            Console.Error.Write($"\nAuthorization:\n--------------\nBearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****\n"); // Mask key
             Console.Error.WriteLine("\nPayload:\n--------------");
             Console.Error.WriteLine(payload.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             Environment.Exit(0);
@@ -806,11 +823,11 @@ public static class Program
             // Use HttpCompletionOption.ResponseHeadersRead for streaming
             var response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-             // Dump response headers/info if requested? The bash script dumps the body.
-             // Dumping a stream is tricky. We'll skip dumping for stream requests.
+            // Dump response headers/info if requested? The bash script dumps the body.
+            // Dumping a stream is tricky. We'll skip dumping for stream requests.
             if (!string.IsNullOrEmpty(_dumpFile))
             {
-                 Console.Error.WriteLine($"{AppName}: Warning: Dumping response to file is not supported for streaming requests. Ignoring -o option.");
+                Console.Error.WriteLine($"{AppName}: Warning: Dumping response to file is not supported for streaming requests. Ignoring -o option.");
             }
 
 
@@ -818,11 +835,13 @@ public static class Program
             {
                 // Read the error body even for streams
                 var errorBody = await response.Content.ReadAsStringAsync();
-                 string errorDetails = errorBody;
-                try {
+                string errorDetails = errorBody;
+                try
+                {
                     var errorJson = JsonNode.Parse(errorBody);
                     errorDetails = errorJson?["error"]?["message"]?.GetValue<string>() ?? errorBody;
-                } catch {} // Ignore parsing errors, use raw body
+                }
+                catch { } // Ignore parsing errors, use raw body
                 RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}\nDetails: {errorDetails}", 9);
                 return null; // Unreachable
             }
@@ -836,8 +855,8 @@ public static class Program
         }
         catch (Exception ex) // Catch other potential errors
         {
-             RaiseError($"An unexpected error occurred during API call: {ex.Message}", 9);
-             return null; // Unreachable
+            RaiseError($"An unexpected error occurred during API call: {ex.Message}", 9);
+            return null; // Unreachable
         }
     }
 
@@ -916,25 +935,25 @@ GLOBAL OPTIONS
 
             if (arg == "--") // Stop processing options
             {
-                 _restArgs.AddRange(remainingArgs.Skip(i + 1));
-                 break;
+                _restArgs.AddRange(remainingArgs.Skip(i + 1));
+                break;
             }
 
             if (!arg.StartsWith('-') || arg.Length == 1) // Treat as positional arg (prompt part or topic)
             {
-                 // Check if it's a topic first
-                 if (arg.StartsWith('@'))
-                 {
-                     if (i == 0 || !remainingArgs[i-1].StartsWith('-')) // Ensure it's the first positional or follows non-option
-                     {
-                         _topic = arg.Substring(1);
-                         // Don't add topic to _restArgs
-                         continue; // Move to next argument
-                     }
-                 }
-                 // Otherwise, it's part of the prompt/restArgs
-                 _restArgs.Add(arg);
-                 continue;
+                // Check if it's a topic first
+                if (arg.StartsWith('@'))
+                {
+                    if (i == 0 || !remainingArgs[i - 1].StartsWith('-')) // Ensure it's the first positional or follows non-option
+                    {
+                        _topic = arg.Substring(1);
+                        // Don't add topic to _restArgs
+                        continue; // Move to next argument
+                    }
+                }
+                // Otherwise, it's part of the prompt/restArgs
+                _restArgs.Add(arg);
+                continue;
             }
 
 
@@ -960,16 +979,16 @@ GLOBAL OPTIONS
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
                 case "-f":
-                     if (i + 1 < remainingArgs.Count)
+                    if (i + 1 < remainingArgs.Count)
                     {
                         _promptFile = remainingArgs[i + 1];
-                         if (_promptFile == "-") _promptFile = null; // Read from stdin if '-'
+                        if (_promptFile == "-") _promptFile = null; // Read from stdin if '-'
                         i++;
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
                 case "-i":
-                     if (i + 1 < remainingArgs.Count)
+                    if (i + 1 < remainingArgs.Count)
                     {
                         _dumpedFile = remainingArgs[i + 1];
                         i++;
@@ -977,7 +996,7 @@ GLOBAL OPTIONS
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
                 case "-o":
-                     if (i + 1 < remainingArgs.Count)
+                    if (i + 1 < remainingArgs.Count)
                     {
                         _dumpFile = remainingArgs[i + 1];
                         i++;
@@ -997,8 +1016,8 @@ GLOBAL OPTIONS
             RaiseError("Topic is required for chatting (-c). Use @topic_name or create one first.", 2);
         }
 
-         // If _restArgs contains items now, they are the prompt (unless -f was used)
-         // The ReadPrompt function will handle combining _restArgs or reading from _promptFile/stdin
+        // If _restArgs contains items now, they are the prompt (unless -f was used)
+        // The ReadPrompt function will handle combining _restArgs or reading from _promptFile/stdin
     }
 }
 
