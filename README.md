@@ -1,10 +1,22 @@
-# OpenAI CLI
+# Duotify.OpenAI.CLI
 
-此應用程式是一個命令列介面 (CLI) 工具，用於與 OpenAI 相容的 API 互動。
+此應用程式是一個跨平台的 CLI 命令列工具，用於與 OpenAI 相容的 API 互動。
 
-它允許使用者傳送提示至各種 OpenAI 端點，包括聊天完成、模型清單、審核、影像產生和 Embeddings。
+它允許使用者傳送提示至各種與 OpenAI API 相容的端點，包括 Chat Completion, models, moderations, images/generations 和 embeddings 等等。
 
-此工具會將對話記錄儲存在 JSON 檔案中，並依主題整理。
+## 安裝
+
+1. 確保已安裝 [.NET 8.0](https://dotnet.microsoft.com/zh-tw/download?WT.mc_id=DT-MVP-4015686) 或更新版本。
+
+    安裝 .NET Runtime 或 .NET SDK 都可以。
+
+2. 透過以下命令安裝本工具
+
+    ```sh
+    dotnet tool install --global Duotify.OpenAI.CLI
+    ```
+
+3. 安裝好之後，你可以透過 `openai-cli -h` 查詢用法。
 
 ## 用途
 
@@ -137,6 +149,10 @@ openai-cli '@my' -c 'My name is Will.'
 openai-cli '@my' -c '很多人也叫我「保哥」'
 openai-cli '@my' -c '我住在 Taiwan, Taipei'
 openai-cli '@my' -c '我喜歡透過 AI 解決各種問題'
+
+# 透過 Pipe 傳文字時，在 PowerShell 可能會需要處理中文編碼問題
+[Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+echo "將此文字翻譯成日文: Good morning!" | openai-cli
 ```
 
 ## 開發時常用命令
