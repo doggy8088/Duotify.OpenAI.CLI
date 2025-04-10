@@ -75,7 +75,7 @@ openai-cli -a images/generations [-f file | prompt ...]
 * `-a <api_name>`：指定要呼叫的 API 端點 (預設：`chat/completions`)。範例：`models`、`moderations`、`images/generations`、`embeddings`。
 * `-c`：在現有主題中繼續對話。需要 `@TOPIC` (除非主題是 `General` 且檔案存在)。
 * `-f <file>`：從指定的檔案讀取提示。如果檔案名稱為 `-` 或未提供提示 / 檔案，則從標準輸入讀取。
-* `-n`：試執行模式。顯示要求詳細資料，但不會實際呼叫 API。
+* `-n`：試執行模式 (dry-run)。顯示要求詳細資料，但不會實際呼叫 API。
 * `-o <filename>`：將原始 API 回應傾印至檔案並結束 (串流不支援)。
 * `-i <filename>`：使用先前傾印的檔案作為 API 回應，而不是發出新要求。
 * `-h` 或 `--help`：顯示說明訊息。
