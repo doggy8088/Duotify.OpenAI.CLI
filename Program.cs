@@ -18,13 +18,13 @@ public static class Program
     private const string DefaultApiName = "chat/completions";
     private const string DefaultTopic = "General";
 
-    private static string _openAIDataDir = Environment.GetEnvironmentVariable("OPENAI_DATA_DIR") ??
+    private static readonly string _openAIDataDir = Environment.GetEnvironmentVariable("OPENAI_DATA_DIR") ??
                                         Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") ??
                                         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".openai");
-    private static string _openAIProvider = Environment.GetEnvironmentVariable("OPENAI_COMPATIBLE_PROVIDER") ?? "OPENAI";
-    private static string _openAIApiEndpoint = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_ENDPOINT") ?? "https://api.openai.com/v1";
-    private static string _openAIApiKey = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_KEY") ?? "";
-    private static string _openAIApiModel = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_MODEL") ?? "gpt-4o";
+    private static readonly string _openAIProvider = Environment.GetEnvironmentVariable("OPENAI_COMPATIBLE_PROVIDER") ?? "OPENAI";
+    private static readonly string _openAIApiEndpoint = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_ENDPOINT") ?? "https://api.openai.com/v1";
+    private static readonly string _openAIApiKey = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_KEY") ?? "";
+    private static readonly string _openAIApiModel = Environment.GetEnvironmentVariable($"{_openAIProvider}_API_MODEL") ?? "gpt-4o";
 
     private static readonly HttpClient HttpClient = new HttpClient();
 
@@ -77,14 +77,14 @@ public static class Program
                 var methodName = $"OpenAI_{_apiName.Replace('/', '_')}";
                 var method = typeof(Program).GetMethod(methodName, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.IgnoreCase);
 
-                if (method == null)
+                if (method is null)
                 {
                     RaiseError($"API '{_apiName}' is not available.", 12);
                 }
 
                 // Assuming all API methods are async Task
                 var task = (Task?)method.Invoke(null, null);
-                if (task != null)
+                if (task is not null)
                 {
                     await task;
                 }
@@ -344,7 +344,7 @@ public static class Program
     public static async Task OpenAI_Models()
     {
         var payload = new JsonObject(); // No payload needed for models list
-        var response = await CallApi(payload);
+        var response = await CallApi(payload, HttpMethod.Get);
         Console.WriteLine(response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
     }
 
@@ -445,7 +445,7 @@ public static class Program
         string? functionName = null;
         JsonObject? functionArgs = null;
         JsonObject payload;
-
+        var accumulatedFnArgs = new StringBuilder();
 
         if (!string.IsNullOrEmpty(_dumpedFile))
         {
@@ -462,15 +462,15 @@ public static class Program
                     // No need to save conversation history when using dumped file
                     return;
                 }
-                // If above fails, assume it might be a streamed dump (though script doesn't explicitly support dumping streams)
+// If above fails, assume it might be a streamed dump (though script doesn't explicitly support dumping streams)
                 // Or handle streamed dump if needed (more complex)
-                 Console.Error.WriteLine($"{AppName}: Warning: Could not extract content from dumped file '{_dumpedFile}'. Assuming stream or invalid format.");
-                 // Fall through to potentially re-request if logic allows, or just exit?
+                Console.Error.WriteLine($"{AppName}: Warning: Could not extract content from dumped file '{_dumpedFile}'. Assuming stream or invalid format.");
+// Fall through to potentially re-request if logic allows, or just exit?
                  // The bash script exits after cat-ing the file, so we mimic that.
                  // If the file was a stream dump, the bash script wouldn't process it here either.
                  // Let's just output the file content as is, like the bash script does.
-                 Console.Write(dumpedContent);
-                 return;
+                Console.Write(dumpedContent);
+                return;
 
             }
             catch (Exception ex)
@@ -486,7 +486,7 @@ public static class Program
             payload = new JsonObject
             {
                 ["model"] = _openAIApiModel,
-                // stream defaults to true unless overridden by +stream=false
+// stream defaults to true unless overridden by +stream=false
             };
 
              // Merge properties from command line, setting stream default
@@ -537,7 +537,6 @@ public static class Program
             if (responseStream == null) return; // Error handled in CallApiStream
 
             var accumulatedContent = new StringBuilder();
-            var accumulatedFnArgs = new StringBuilder();
 
             using (var reader = new StreamReader(responseStream))
             {
@@ -629,7 +628,7 @@ public static class Program
             if (fnCall != null)
             {
                  responseContent = fnCall.ToJsonString(); // Save the function call object stringified
-                 // Output might need adjustment depending on desired non-streaming function call format
+// Output might need adjustment depending on desired non-streaming function call format
                  Console.WriteLine(fnCall.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             } else {
                  Console.WriteLine(responseContent);
@@ -681,8 +680,13 @@ public static class Program
     }
 
 
-    private static async Task<JsonNode?> CallApi(JsonObject payload)
+    private static async Task<JsonNode?> CallApi(JsonObject payload, HttpMethod? method = null)
     {
+        if (method is null)
+        {
+            method = HttpMethod.Post;
+        }
+
         // Handle dumped file input
         if (!string.IsNullOrEmpty(_dumpedFile))
         {
@@ -699,33 +703,29 @@ public static class Program
         }
 
         var url = $"{_openAIApiEndpoint}/{_apiName}";
+        // System.Console.WriteLine(url);
         var authHeader = new AuthenticationHeaderValue("Bearer", _openAIApiKey);
 
         // Dry-run mode
         if (_dryRun)
         {
             Console.Error.WriteLine("Dry-run mode, no API calls made.");
-            Console.Error.WriteLine($"
-Request URL:
---------------
-{url}");
-            Console.Error.Write($"
-Authorization:
---------------
-Bearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****
-"); // Mask key
-            Console.Error.WriteLine("
-Payload:
---------------");
+            Console.Error.WriteLine($"\nRequest URL:\n--------------\n{url}");
+            Console.Error.Write($"\nAuthorization:\n--------------\nBearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****\n"); // Mask key
+            Console.Error.WriteLine("\nPayload:\n--------------");
             Console.Error.WriteLine(payload.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             Environment.Exit(0);
         }
 
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            using var request = new HttpRequestMessage(method, url);
             request.Headers.Authorization = authHeader;
-            request.Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json");
+
+            if (method != HttpMethod.Get)
+            {
+                request.Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json");
+            }
 
             using var response = await HttpClient.SendAsync(request);
 
@@ -749,8 +749,7 @@ Payload:
                     errorDetails = errorJson?["error"]?["message"]?.GetValue<string>() ?? responseBody;
                 } catch {} // Ignore parsing errors, use raw body
 
-                RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}
-Details: {errorDetails}", 9);
+                RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}\nDetails: {errorDetails}", 9);
             }
 
 
@@ -789,18 +788,9 @@ Details: {errorDetails}", 9);
         if (_dryRun)
         {
             Console.Error.WriteLine("Dry-run mode, no API calls made.");
-            Console.Error.WriteLine($"
-Request URL:
---------------
-{url}");
-             Console.Error.Write($"
-Authorization:
---------------
-Bearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****
-"); // Mask key
-            Console.Error.WriteLine("
-Payload:
---------------");
+            Console.Error.WriteLine($"\nRequest URL:\n--------------\n{url}");
+             Console.Error.Write($"\nAuthorization:\n--------------\nBearer {_openAIApiKey.Substring(0, Math.Min(_openAIApiKey.Length, 3))}****\n"); // Mask key
+            Console.Error.WriteLine("\nPayload:\n--------------");
             Console.Error.WriteLine(payload.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             Environment.Exit(0);
         }
@@ -832,8 +822,7 @@ Payload:
                     var errorJson = JsonNode.Parse(errorBody);
                     errorDetails = errorJson?["error"]?["message"]?.GetValue<string>() ?? errorBody;
                 } catch {} // Ignore parsing errors, use raw body
-                RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}
-Details: {errorDetails}", 9);
+                RaiseError($"API call failed: {(int)response.StatusCode} {response.ReasonPhrase}\nDetails: {errorDetails}", 9);
                 return null; // Unreachable
             }
 
@@ -918,12 +907,11 @@ GLOBAL OPTIONS
     private static void ParseArgs(string[] args)
     {
         var remainingArgs = new List<string>(args);
-        _restArgs = new List<string>(); // Initialize here
+        _restArgs = new List<string>();
 
         for (int i = 0; i < remainingArgs.Count; i++)
         {
             string arg = remainingArgs[i];
-            bool consumedNext = false;
 
             if (arg == "--") // Stop processing options
             {
@@ -966,8 +954,7 @@ GLOBAL OPTIONS
                     if (i + 1 < remainingArgs.Count)
                     {
                         _apiName = remainingArgs[i + 1];
-                        i++; // Consume the value
-                        consumedNext = true;
+                        i++;
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
@@ -976,8 +963,7 @@ GLOBAL OPTIONS
                     {
                         _promptFile = remainingArgs[i + 1];
                          if (_promptFile == "-") _promptFile = null; // Read from stdin if '-'
-                        i++; // Consume the value
-                        consumedNext = true;
+                        i++;
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
@@ -985,8 +971,7 @@ GLOBAL OPTIONS
                      if (i + 1 < remainingArgs.Count)
                     {
                         _dumpedFile = remainingArgs[i + 1];
-                        i++; // Consume the value
-                        consumedNext = true;
+                        i++;
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
@@ -994,19 +979,14 @@ GLOBAL OPTIONS
                      if (i + 1 < remainingArgs.Count)
                     {
                         _dumpFile = remainingArgs[i + 1];
-                        i++; // Consume the value
-                        consumedNext = true;
+                        i++;
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
                 default:
-                    // If it's not a recognized option, treat it as a positional argument
                     _restArgs.Add(arg);
                     break;
             }
-
-             // If the next argument was consumed as a value, skip it in the next iteration
-            // (Handled by i++ above)
         }
 
 
