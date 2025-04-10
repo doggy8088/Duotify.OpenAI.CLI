@@ -152,10 +152,10 @@ dotnet run -- -a models
 dotnet pack -c Release
 
 # 安裝 openai-cli 工具
-dotnet tool install --global --add-source ./nupkg openai-cli
+dotnet tool install --global --add-source ./nupkgs openai-cli
 
 # 更新 openai-cli 工具
-dotnet tool update --global --add-source ./nupkg openai-cli
+dotnet tool update --global --add-source ./nupkgs openai-cli
 
 # 卸載 openai-cli 工具
 dotnet tool uninstall --global openai-cli
