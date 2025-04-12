@@ -75,6 +75,7 @@ openai-cli -a images/generations [-f file | prompt ...]
 * `-a <api_name>`：指定要呼叫的 API 端點 (預設：`chat/completions`)。範例：`models`、`moderations`、`images/generations`、`embeddings`。
 * `-c`：在現有主題中繼續對話。需要 `@TOPIC` (除非主題是 `General` 且檔案存在)。
 * `-f <file>`：從指定的檔案讀取提示。如果檔案名稱為 `-` 或未提供提示 / 檔案，則從標準輸入讀取。
+* `--image <filename>`：指定要包含在請求中的圖片檔案（最多 4 個）。此選項可以多次使用。僅支援相容的模型，例如 gpt-4o。
 * `-n`：試執行模式 (dry-run)。顯示要求詳細資料，但不會實際呼叫 API。
 * `-o <filename>`：將原始 API 回應傾印至檔案並結束 (串流不支援)。
 * `-i <filename>`：使用先前傾印的檔案作為 API 回應，而不是發出新要求。
@@ -122,6 +123,9 @@ openai-cli -f prompt.txt
 
 # 使用不同的模型和溫度進行聊天完成
 openai-cli +model=gpt-3.5-turbo +temperature=0.5 "解釋量子運算"
+
+# 包含圖片進行提問 (最多 4 張)
+openai-cli --image image1.png --image image2.jpg "描述這些圖片中的內容"
 
 # 列出可用的模型
 openai-cli -a models
@@ -175,6 +179,9 @@ dotnet run -- -a models
 
 # 封裝 NuGet 套件
 dotnet pack -c Release
+
+# 卸載 Duotify.OpenAI.CLI 工具
+dotnet tool uninstall --global Duotify.OpenAI.CLI
 
 # 安裝 Duotify.OpenAI.CLI 工具
 dotnet tool install --global --add-source ./nupkgs Duotify.OpenAI.CLI

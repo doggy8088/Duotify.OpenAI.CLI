@@ -37,6 +37,7 @@ public static class Program
     private static string? _dumpedFile = null;
     private static string? _promptFile = null;
     private static string _prompt = "";
+    private static List<string> _imageFiles = new List<string>(); // Added for image support
     private static List<string> _restArgs = new List<string>();
     private static string _dataFile = "";
     private static string? _tempDir = null;
@@ -168,7 +169,7 @@ public static class Program
 
         var entry = new JsonObject { ["role"] = role };
 
-        // Handle simple string content vs function call object
+        // Handle simple string content vs function call object vs complex content array (with images)
         if (contentNode is JsonValue val && val.TryGetValue<string>(out var stringContent))
         {
             entry["content"] = stringContent;
@@ -181,14 +182,18 @@ public static class Program
                 entry["function_call"] = objContent["function_call"]?.DeepClone(); // Add the function call details
                 entry["content"] = null; // Per OpenAI spec, content is null for function calls
             }
-            else // Otherwise, assume it's a regular content object (though usually it's a string)
+            else // Otherwise, assume it's a regular content object
             {
                 entry["content"] = objContent.DeepClone();
             }
         }
+        else if (contentNode is JsonArray arrayContent) // For user messages with images
+        {
+             entry["content"] = arrayContent.DeepClone();
+        }
         else
         {
-            // Fallback or error? Assuming string content if not an object.
+            // Fallback or error? Assuming string content if not an object or array.
             entry["content"] = contentNode?.ToJsonString() ?? "";
         }
 
@@ -206,13 +211,11 @@ public static class Program
         }
     }
 
-
     // Overload for simple string content
     private static void UpdateConversation(string role, string content)
     {
         UpdateConversation(role, JsonValue.Create(content)!);
     }
-
 
     private static void SaveTokens(int num)
     {
@@ -526,8 +529,56 @@ public static class Program
                 }
             }
 
-            // Add user's prompt
-            messages.Add(new JsonObject { ["role"] = "user", ["content"] = _prompt });
+            // Add user's prompt (potentially with images)
+            JsonNode userContentNode;
+            if (_imageFiles.Any())
+            {
+                var contentArray = new JsonArray();
+                // Add text part first
+                contentArray.Add(new JsonObject { ["type"] = "text", ["text"] = _prompt });
+
+                // Add image parts
+                foreach (var imagePath in _imageFiles)
+                {
+                    try
+                    {
+                        var imageBytes = await File.ReadAllBytesAsync(imagePath);
+                        var base64Image = Convert.ToBase64String(imageBytes);
+                        var mimeType = GetImageMimeType(imagePath);
+                        if (string.IsNullOrEmpty(mimeType))
+                        {
+                             RaiseError($"Unsupported image type or invalid file extension for: {imagePath}", 14);
+                             return; // Necessary for compiler, RaiseError exits
+                        }
+                        contentArray.Add(new JsonObject
+                        {
+                            ["type"] = "image_url",
+                            ["image_url"] = new JsonObject
+                            {
+                                ["url"] = $"data:{mimeType};base64,{base64Image}"
+                            }
+                        });
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        RaiseError($"Image file not found: {imagePath}", 14);
+                        return; // Necessary for compiler
+                    }
+                    catch (Exception ex)
+                    {
+                        RaiseError($"Error reading image file '{imagePath}': {ex.Message}", 14);
+                        return; // Necessary for compiler
+                    }
+                }
+                userContentNode = contentArray;
+            }
+            else
+            {
+                // Simple text prompt
+                userContentNode = JsonValue.Create(_prompt)!;
+            }
+
+            messages.Add(new JsonObject { ["role"] = "user", ["content"] = userContentNode.DeepClone() }); // Use DeepClone here
             payload["messages"] = messages;
 
             // Check o1 parameters (approximation) - C# doesn't have direct equivalent of test/select easily
@@ -652,8 +703,19 @@ public static class Program
         // Save conversation history for chat mode
         if (_chatMode && !_dryRun) // Don't save if dry run
         {
-            // Save user prompt first
-            UpdateConversation("user", _prompt);
+            // Save user prompt first (handle potential complex content)
+            JsonNode userContentToSave;
+             if (_imageFiles.Any())
+             {
+                 // Find the user message added earlier (it should be the last one before the API call)
+                 var userMessage = payload["messages"]?.AsArray().LastOrDefault(m => m?["role"]?.GetValue<string>() == "user");
+                 userContentToSave = userMessage?["content"]?.DeepClone() ?? JsonValue.Create(_prompt)!; // Fallback just in case
+             }
+             else
+             {
+                 userContentToSave = JsonValue.Create(_prompt)!;
+             }
+            UpdateConversation("user", userContentToSave);
 
             // Save assistant response (or function call)
             JsonNode responseNode;
@@ -879,13 +941,16 @@ SYNOPSIS
     {AppName} -i dumped_file
 
   DEFAULT_API ({DefaultApiName})
-    {AppName} [-c] [+property=value...] [@TOPIC] [-f file | prompt ...]
+    {AppName} [-c] [--image file...] [+property=value...] [@TOPIC] [-f file | prompt ...]
     prompt
             Prompt string for the request to OpenAI API. This can consist of multiple
             arguments, which are considered to be separated by spaces.
     -f file
             A file to be read as prompt. If neither this parameter nor a prompt
             is specified, read from standard input.
+    --image file
+            Specifies an image file to include in the request (up to 4).
+            This option can be used multiple times. Only supported for compatible models like gpt-4o.
     -c
             Continues the topic, the default topic is '{DefaultTopic}'.
     +property=value
@@ -918,7 +983,7 @@ GLOBAL OPTIONS
   --
           Ignores rest of arguments, useful when unquoted prompt consists of '-'. (Handled implicitly by parser)
 
-  -h
+  -h, --help
           Shows this help";
 
         RaiseError(usageText, 0, noPrefix: true);
@@ -928,6 +993,7 @@ GLOBAL OPTIONS
     {
         var remainingArgs = new List<string>(args);
         _restArgs = new List<string>();
+        _imageFiles = new List<string>(); // Reset image files list
 
         for (int i = 0; i < remainingArgs.Count; i++)
         {
@@ -1003,6 +1069,15 @@ GLOBAL OPTIONS
                     }
                     else RaiseError($"Option {arg} requires an argument.", 2);
                     break;
+                case "--image": // Added for image support
+                    if (i + 1 < remainingArgs.Count)
+                    {
+                        var imagePath = remainingArgs[i + 1];
+                        _imageFiles.Add(imagePath);
+                        i++;
+                    }
+                    else RaiseError($"Option {arg} requires an argument.", 2);
+                    break;
                 default:
                     _restArgs.Add(arg);
                     break;
@@ -1016,11 +1091,34 @@ GLOBAL OPTIONS
             RaiseError("Topic is required for chatting (-c). Use @topic_name or create one first.", 2);
         }
 
+        // Validate image count
+        if (_imageFiles.Count > 4)
+        {
+            RaiseError("Maximum of 4 image files allowed with --image.", 2);
+        }
+
         // If _restArgs contains items now, they are the prompt (unless -f was used)
         // The ReadPrompt function will handle combining _restArgs or reading from _promptFile/stdin
     }
-}
 
-// Helper classes for potential future structured JSON handling (optional)
-// public class ConversationMessage { public string Role { get; set; } public string Content { get; set; } }
-// public class ConversationData { public List<ConversationMessage> Messages { get; set; } public int TotalTokens { get; set; } }
+    // Helper function to determine MIME type from file extension
+    private static string? GetImageMimeType(string filePath)
+    {
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        switch (extension)
+        {
+            case ".jpg":
+            case ".jpeg":
+                return "image/jpeg";
+            case ".png":
+                return "image/png";
+            case ".gif":
+                return "image/gif";
+            case ".webp":
+                return "image/webp";
+            default:
+                // Return null or throw an exception for unsupported types
+                return null;
+        }
+    }
+}
